@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dynamic_theme/dynamic_theme.dart';
 
 void main() => runApp(new TodoApp());
 
@@ -7,20 +8,34 @@ void main() => runApp(new TodoApp());
 class TodoApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new MaterialApp(
-      title: 'Todo List',
-      home: TodoList(),
+    return DynamicTheme(
+      defaultBrightness: Brightness.light,
+      data: (brightness) => new ThemeData(
+        primarySwatch: Colors.indigo,
+        brightness: brightness,
+      ),
+      themedWidgetBuilder: (context, theme) {
+        return new MaterialApp(
+          title: 'Todo List',
+          home: TodoList(),
+          theme: theme,
+        );
+      }
     );
+
   }
 }
+
 
 class TodoList extends StatefulWidget {
   @override
   _TodoListState createState() => _TodoListState();
 }
 
+
 class _TodoListState extends State<TodoList> {
   List<String> _todoItems = [];
+
 
   // called on AppStart
   @override
@@ -28,6 +43,7 @@ class _TodoListState extends State<TodoList> {
     super.initState();
     _loadTodoItems();
   }
+
 
   // load the saved Item List
   _loadTodoItems() async{
@@ -37,11 +53,25 @@ class _TodoListState extends State<TodoList> {
     });
   }
 
+
   // safe the Item List
   _saveTodoItems() async{
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setStringList('todoList', _todoItems);
   }
+
+
+  void changeBrightness() {
+    DynamicTheme.of(context).setBrightness(Theme.of(context).brightness == Brightness.dark? Brightness.light: Brightness.dark);
+  }
+
+  /* can't be saved
+  void changeColor() {
+    DynamicTheme.of(context).setThemeData(new ThemeData(
+        primaryColor: Theme.of(context).primaryColor == Colors.indigo? Colors.red: Colors.indigo
+    ));
+  }*/
+
 
   // add an item to list
   void _addTodoItem(String task) {
@@ -51,6 +81,7 @@ class _TodoListState extends State<TodoList> {
     }
   }
 
+
   // remove an item from list
   void _removeTodoItem(int index){
     setState(() {
@@ -58,6 +89,7 @@ class _TodoListState extends State<TodoList> {
       _saveTodoItems();
     });
   }
+
 
   // push a new page with TextField to add a new task
   void _pushAddTodoScreen(){
@@ -81,6 +113,7 @@ class _TodoListState extends State<TodoList> {
       })
     );
   }
+
 
   // ask in an AlertWidget to remove a task
   void _promptRemoveTodoItem(int index){
@@ -132,6 +165,18 @@ class _TodoListState extends State<TodoList> {
     return new Scaffold(
       appBar: AppBar(
         title: Text('Todo List'),
+        actions: <Widget>[
+          IconButton(
+              icon: Icon(Icons.wb_sunny),
+              onPressed: () => changeBrightness()
+          ),
+          IconButton(
+
+            icon: Icon(Icons.color_lens),
+            onPressed: () => {},
+            //onPressed: () => changeColor(),
+          )
+        ],
       ),
       body: _buildTodoList(),
       floatingActionButton: new FloatingActionButton(
